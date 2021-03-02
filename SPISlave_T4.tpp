@@ -42,6 +42,35 @@ SPISlave_T4_FUNC SPISlave_T4_OPT::SPISlave_T4() {
 }
 
 
+SPISlave_T4_FUNC void SPISlave_T4_OPT::swapPins(bool enable) {
+  SLAVE_PORT_ADDR;
+  SLAVE_CR &= ~LPSPI_CR_MEN; /* Disable Module */
+  SLAVE_CFGR1 = (SLAVE_CFGR1 & 0xFCFFFFFF) | (enable) ? (3UL << 24) : (0UL << 24);
+  SLAVE_CR |= LPSPI_CR_MEN; /* Enable Module */
+  if ( sniffer_enabled ) sniffer();
+}
+
+
+SPISlave_T4_FUNC void SPISlave_T4_OPT::sniffer(bool enable) {
+  SLAVE_PORT_ADDR;
+  sniffer_enabled = enable;
+  if ( port == &SPI ) {
+    if ( SLAVE_CFGR1 & (3UL << 24) ) { /* if pins are swapped */
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 0x3; /* LPSPI4 SCK (CLK) */
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 0x0; /* LPSPI4 SDI (MISO) */
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 0x3; /* LPSPI4 SDO (MOSI) */
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 0x3; /* LPSPI4 PCS0 (CS) */
+    }
+    else {
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_03 = 0x3; /* LPSPI4 SCK (CLK) */
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_01 = 0x3; /* LPSPI4 SDI (MISO) */
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_02 = 0x0; /* LPSPI4 SDO (MOSI) */
+      IOMUXC_SW_MUX_CTL_PAD_GPIO_B0_00 = 0x3; /* LPSPI4 PCS0 (CS) */
+    }
+  }
+}
+
+
 SPISlave_T4_FUNC bool SPISlave_T4_OPT::active() {
   SLAVE_PORT_ADDR;
   return ( !(SLAVE_SR & (1UL << 9)) ) ? 1 : 0;

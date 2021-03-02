@@ -37,6 +37,8 @@ SPISlave_T4_CLASS class SPISlave_T4 : public SPISlave_T4_Base {
     void onReceive(_SPI_ptr handler) { _spihandler = handler; }
     bool active();
     bool available();
+    void sniffer(bool enable = 1);
+    void swapPins(bool enable = 1);
     void pushr(uint32_t data);
     uint32_t popr();
 
@@ -46,6 +48,7 @@ SPISlave_T4_CLASS class SPISlave_T4 : public SPISlave_T4_Base {
     int _portnum = 0;
     uint32_t nvic_irq = 0;
     uint32_t transmit_errors = 0;
+    bool sniffer_enabled = 0;
 };
 
 #include "SPISlave_T4.tpp"
